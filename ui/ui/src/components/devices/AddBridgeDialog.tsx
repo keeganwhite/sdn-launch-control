@@ -54,7 +54,7 @@ interface AddBridgeDialogProps {
   isOpen: boolean;
   onClose: () => void;
   deviceIp: string;
-  onBridgeAdded: () => void;
+  onBridgeAdded: () => Promise<void>;
   onBridgeSuccess: (message: string) => void;
   onBridgeError: (message: string) => void;
   onQosSuccess: (message: string) => void;
@@ -225,6 +225,8 @@ const AddBridgeDialog: React.FC<AddBridgeDialogProps> = ({
       };
     }
 
+    let bridgeAddedSuccessfully = false;
+
     try {
       const token = localStorage.getItem("taurineToken") || "";
       await addBridge(token, payload as unknown as Partial<Bridge>);
@@ -243,11 +245,18 @@ const AddBridgeDialog: React.FC<AddBridgeDialogProps> = ({
       }
 
       resetForm();
-      onBridgeAdded(); // Refresh bridge data
+      bridgeAddedSuccessfully = true;
     } catch (error) {
       console.error("Error adding bridge:", error);
       onBridgeError("Error adding bridge. Please try again.");
     } finally {
+      // Only close dialog and refresh data after loading is complete and operation succeeded
+      // This prevents the dialog from closing prematurely while backend is still processing
+      if (bridgeAddedSuccessfully) {
+        // Keep loading indicator visible while refreshing data and closing dialog
+        await onBridgeAdded(); // Refresh bridge data and close dialog
+      }
+      // Set loading to false after dialog is closed to ensure loading indicator stays visible
       setIsLoading(false);
     }
   };

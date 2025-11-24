@@ -2,6 +2,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 from django.db import transaction
 from .models import Plugin, PluginRequirement, PluginInstallation, SnifferInstallationConfig
 from .serializers import (
@@ -35,7 +36,7 @@ class PluginViewSet(viewsets.ModelViewSet):
     queryset = Plugin.objects.all()
     serializer_class = PluginSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
 
     @action(detail=False, methods=['post'], url_path='install-sniffer')
     def install_sniffer_plugin(self, request):
@@ -152,7 +153,7 @@ class PluginRequirementViewSet(viewsets.ModelViewSet):
     queryset = PluginRequirement.objects.all()
     serializer_class = PluginRequirementSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
 
 
 class PluginInstallationViewSet(viewsets.ModelViewSet):
@@ -163,7 +164,7 @@ class PluginInstallationViewSet(viewsets.ModelViewSet):
     queryset = PluginInstallation.objects.all()
     serializer_class = PluginInstallationSerializer # This now includes nested sniffer_config
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
 
     # The default list/retrieve methods will now show nested sniffer_config if available.
 
@@ -184,7 +185,7 @@ class SnifferInstallationConfigViewSet(viewsets.ModelViewSet):
     queryset = SnifferInstallationConfig.objects.all()
     serializer_class = SnifferInstallationConfigSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
 
     # Disable direct creation via this endpoint
     def create(self, request, *args, **kwargs):

@@ -30,6 +30,7 @@ from .utilities.utils import check_system_details
 from utils.ansible_formtter import get_interface_speeds_from_results
 from django.shortcuts import get_object_or_404
 from utils.ansible_utils import run_playbook_with_extravars, create_temp_inv, create_inv_data
+from utils.api_key_utils import create_api_key
 from django.core.validators import validate_ipv4_address
 from django.core.exceptions import ValidationError
 import logging
@@ -37,7 +38,7 @@ from knox.auth import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .utilities.utils import write_to_inventory, save_ip_to_config, save_api_url_to_config, save_pi_bool
 from time import sleep
-
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
 logger = logging.getLogger(__name__)
@@ -50,7 +51,8 @@ install_system_monitor = "install-stats-monitor"
 
 
 class InstallOvsView(APIView):
-
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
+    
     def post(self, request):
         """
         Handle POST requests to install Open vSwitch on a remote device and record its ports.
@@ -101,6 +103,10 @@ class InstallOvsView(APIView):
 
             # save_api_url_to_config(data.get('api_url'), config_path)
             api_url = data.get('api_url')
+            # Create a new API key for this system stats monitor installation
+            api_key_name = f"switch-{lan_ip_address}-stats-monitor"
+            api_key_instance, plaintext_key = create_api_key(name=api_key_name)
+            
             result_install_monitor = run_playbook_with_extravars(
                 install_system_monitor,
                 playbook_dir_path,
@@ -108,7 +114,8 @@ class InstallOvsView(APIView):
                 {
                     'is_pi': is_pi,
                     'api_url': api_url,
-                    'ip_address': lan_ip_address
+                    'ip_address': lan_ip_address,
+                    'api_key': plaintext_key,
                 }
             )
             if result_install_monitor['status'] == 'failed':

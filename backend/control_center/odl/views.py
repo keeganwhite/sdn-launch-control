@@ -46,7 +46,7 @@ from django.utils.timezone import now as django_now
 from django.db.models import Q
 from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework_api_key.permissions import HasAPIKeyOrIsAuthenticated
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 
 
 from classifier.classification import create_classification_from_json
@@ -94,9 +94,10 @@ except Exception as e:
 class OdlMeterListView(ListAPIView):
     """
     List all ODL Meters, optionally filtered by controller_ip, switch_node_id, and model_name.
+    Authentication: Required (Knox Token or API Key)
     """
     serializer_class = OdlMeterSerializer
-
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     def get_queryset(self):
         queryset = OdlMeter.objects.all().select_related(
             'controller_device', 'network_device', 'model_configuration'
@@ -140,6 +141,11 @@ class OdlMeterListView(ListAPIView):
         return queryset.order_by('-created_at')
 
 class CreateOpenDaylightMeterView(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
+    """
+    Create a new ODL Meter, optionally filtered by controller_ip, switch_node_id, and model_name.
+    Authentication: Required (Knox Token or API Key)
+    """
     @transaction.atomic
     def post(self, request):
         try:
@@ -388,6 +394,10 @@ class CreateOpenDaylightMeterView(APIView):
 @api_view(['POST'])
 @permission_classes([HasAPIKeyOrIsAuthenticated])
 def odl_classify_and_apply_policy(request):
+    """
+    Classify and apply policy to ODL meters
+    Authentication: Required (Knox Token or API Key)
+    """
     if request.method == 'POST':
         data = request.data
         # Accept both a single object and a list of objects
@@ -617,7 +627,9 @@ def odl_classify_and_apply_policy(request):
 class OdlMeterDetailView(APIView):
     """
     Retrieve, update or delete an OdlMeter instance.
+    Authentication: Required (Knox Token or API Key)
     """
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
 
     def get_object(self, pk):
         return get_object_or_404(OdlMeter, pk=pk)
@@ -857,10 +869,10 @@ class OdlControllerNodesView(ListAPIView):
     """
     List all ODL-controlled "nodes" (Bridges with odl_node_id)
     for a given ODL Controller.
-    The controller is identified by its database ID passed in the URL.
+    The controller is identified by its database ID passed in the URL.Authentication: Required (Knox Token or API Key)
     """
     serializer_class = OdlNodeSerializer
-
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     def get_queryset(self):
         controller_id = self.kwargs.get('controller_id')
         if not controller_id:
@@ -887,7 +899,9 @@ class OdlControllerNodesView(ListAPIView):
 class ModelManagementView(APIView):
     """
     API endpoints for managing classification models
+    Authentication: Required (Knox Token or API Key)
     """
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     
     def get(self, request):
         """
@@ -942,8 +956,10 @@ class ModelManagementView(APIView):
 
 class ModelLoadView(APIView):
     """
-    API endpoints for loading/unloading models
+    Load a specific model into memory
+    Authentication: Required (Knox Token or API Key)
     """
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     
     def post(self, request):
         """
@@ -1010,8 +1026,10 @@ class ModelLoadView(APIView):
 
 class ModelInfoView(APIView):
     """
-    API endpoint to get detailed information about available models
+    Get detailed information about all available models
+    Authentication: Required (Knox Token or API Key)
     """
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     
     def get(self, request):
         """

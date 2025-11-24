@@ -34,6 +34,7 @@ from django.core.exceptions import ValidationError
 import logging
 from knox.auth import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 from utils.ansible_utils import run_playbook_with_extravars, create_temp_inv, create_inv_data
 
 
@@ -53,7 +54,7 @@ get_ports = "get-ports"
 
 class InstallControllerView(APIView):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
 
     def post(self, request, controller_type):
         """

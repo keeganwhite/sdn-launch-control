@@ -34,7 +34,7 @@ from network_device.models import NetworkDevice
 from network_device.serializers import NetworkDeviceSerializer
 from requests.auth import HTTPBasicAuth
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework_api_key.permissions import HasAPIKeyOrIsAuthenticated
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 from ovs_install.utilities.ansible_tasks import run_playbook
 from django.core.validators import validate_ipv4_address
 from django.core.exceptions import ValidationError
@@ -342,7 +342,7 @@ class PortUtilizationStatsViewSet(viewsets.ReadOnlyModelViewSet):
     For aggregated data (recommended for graphs), use the /aggregate/ endpoint.
     """
     serializer_class = PortUtilizationStatsSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     
     # Safety limit to prevent excessive data returns
     MAX_LIMIT = 50000
@@ -898,7 +898,7 @@ class DeviceStatsViewSet(viewsets.ReadOnlyModelViewSet):
     - interval: one of {'10 seconds','1 minute','5 minutes','15 minutes','1 hour','1 day'}; default '5 minutes'
     """
     serializer_class = DeviceStatsSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
 
     @action(detail=False, methods=['get'], url_path='aggregate')
     def aggregate(self, request):
@@ -1028,7 +1028,7 @@ class DeviceUptimeViewSet(viewsets.ViewSet):
     - GET /api/device-monitoring/uptime/{device_id}/timeseries/ - Time series data for specific device
     - GET /api/device-monitoring/uptime/aggregates/ - Aggregated data from materialized views
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     
     def list(self, request):
         """

@@ -23,6 +23,9 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            # API key access - return empty queryset since notifications are user-specific
+            return Notification.objects.none()
         return Notification.objects.filter(user=self.request.user)
 
 
@@ -34,6 +37,11 @@ class TelegramTestView(APIView):
 
     def get(self, request, format=None):
         # Retrieve the notifier for the authenticated user.
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': 'User authentication required for this endpoint.'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
         try:
             notifier = request.user.notifier
         except Notifier.DoesNotExist:
@@ -71,6 +79,11 @@ class LinkTelegramView(APIView):
 
 
     def post(self, request):
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "User authentication required for this endpoint."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
         try:
             data = json.loads(request.body)
             unique_token = data.get("unique_token")
@@ -99,9 +112,16 @@ class NetworkSummaryNotificationViewSet(viewsets.ModelViewSet):
 
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            # API key access - return empty queryset since notifications are user-specific
+            return NetworkSummaryNotification.objects.none()
         return NetworkSummaryNotification.objects.filter(notifier__user=self.request.user)
 
     def perform_create(self, serializer):
+        if not self.request.user.is_authenticated:
+            # API key access - cannot create user-specific notifications
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Cannot create notifications with API key authentication. User authentication required.")
         logger.debug("perform_create with", self.request.user)
 
         # Ensure that `request` context is passed to serializer
@@ -119,9 +139,16 @@ class DataUsageNotificationViewSet(viewsets.ModelViewSet):
     serializer_class = DataUsageNotificationSerializer
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            # API key access - return empty queryset since notifications are user-specific
+            return DataUsageNotification.objects.none()
         return DataUsageNotification.objects.filter(notifier__user=self.request.user)
 
     def perform_create(self, serializer):
+        if not self.request.user.is_authenticated:
+            # API key access - cannot create user-specific notifications
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Cannot create notifications with API key authentication. User authentication required.")
         notifier, created = Notifier.objects.get_or_create(user=self.request.user)
         serializer.save(notifier=notifier)
 
@@ -136,9 +163,16 @@ class ApplicationUsageNotificationViewSet(viewsets.ModelViewSet):
     serializer_class = ApplicationUsageNotificationSerializer
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            # API key access - return empty queryset since notifications are user-specific
+            return ApplicationUsageNotification.objects.none()
         return ApplicationUsageNotification.objects.filter(notifier__user=self.request.user)
 
     def perform_create(self, serializer):
+        if not self.request.user.is_authenticated:
+            # API key access - cannot create user-specific notifications
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Cannot create notifications with API key authentication. User authentication required.")
         notifier, created = Notifier.objects.get_or_create(user=self.request.user)
         serializer.save(notifier=notifier)
 

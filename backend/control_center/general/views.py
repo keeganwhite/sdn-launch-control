@@ -42,6 +42,7 @@ from rest_framework.viewsets import ModelViewSet
 from .models import Controller
 from .serializers import ControllerSerializer
 from rest_framework.permissions import IsAuthenticated
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 from knox.auth import TokenAuthentication
 from utils.ansible_utils import run_playbook_with_extravars, create_temp_inv, create_inv_data
 from utils.ansible_formtter import get_single_port_speed_from_results, get_port_status_from_results
@@ -63,7 +64,7 @@ from .models import ClassifierModel
 # *---------- Network Connectivity Methods ----------*
 class CheckDeviceConnectionView(APIView):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
     def get(self, request, lan_ip_address, device_type):
         try:
             validate_ipv4_address(lan_ip_address)
@@ -243,7 +244,7 @@ class InstallPluginView(APIView):
 
 class DeviceListView(APIView):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
     def get(self, request):
         try:
             devices = Device.objects.all()
@@ -266,7 +267,7 @@ class DeviceListView(APIView):
 
 class DeviceDetailView(APIView):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
 
     def get(self, request, device_id):
         """
@@ -480,6 +481,8 @@ class UpdateDeviceView(APIView):
 #             return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CategoryListView(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
     def get(self, request):
         try:
             # Get query parameters
@@ -544,7 +547,7 @@ class ControllerViewSet(ModelViewSet):
     queryset = Controller.objects.all()
     serializer_class = ControllerSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
 
     def perform_create(self, serializer):
         # Add any custom logic when creating a Controller, if needed
@@ -582,7 +585,7 @@ class SwitchViewSet(ModelViewSet):
     queryset = Device.objects.filter(device_type="switch")
     serializer_class = DeviceSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
 
     def perform_create(self, serializer):
         # Ensure only switches can be created here
@@ -643,7 +646,7 @@ class PortViewSet(ModelViewSet):
     queryset = Port.objects.all()
     serializer_class = PortSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
 
     def get_serializer_class(self):
         """

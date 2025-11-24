@@ -46,7 +46,7 @@ from rest_framework.permissions import IsAuthenticated
 from general.models import Controller
 from software_plugin.models import SnifferInstallationConfig, PluginInstallation
 from utils.install_plugin import uninstall_sniffer_util
-
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -61,6 +61,8 @@ install_qos_monitor = "run-ovs-qos-monitor"
 
 
 class GetDevicePorts(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
+
     def get(self, request, lan_ip_address):
         """
         Return the list of interface names on a switch that are not bridge ports.
@@ -116,6 +118,7 @@ class GetDevicePorts(APIView):
 
 
 class GetUnassignedDevicePorts(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     def get(self, request, lan_ip_address):
         """
         Return the names of interfaces on a switch that are not assigned to any bridge.
@@ -179,6 +182,7 @@ class GetUnassignedDevicePorts(APIView):
 
 
 class AssignPorts(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     def post(self, request):
         """
         Parse an assign-ports request payload and extract the "ports" field.
@@ -197,6 +201,7 @@ class AssignPorts(APIView):
             return Response({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class GetBridgePortsView(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     """
     Retrieve ports associated with a specific bridge on a device,
     including their OVS port numbers.
@@ -233,8 +238,10 @@ class GetBridgePortsView(APIView):
 
 
 class GetDeviceBridges(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     """
     Use this to get bridge ports for a device and sync the DB with the device.
+    Authentication: Required (Knox Token or API Key)
     """
 
     def get(self, request, lan_ip_address):
@@ -356,6 +363,7 @@ class GetDeviceBridges(APIView):
             return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class GetDeviceBridgeDpid(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     def get(self, request):
         try:
             data = request.data
@@ -378,6 +386,8 @@ class GetDeviceBridgeDpid(APIView):
 
 
 class EditBridge(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
+
     @transaction.atomic # Ensure atomicity for the edit operation
     def put(self, request):
         """
@@ -664,27 +674,38 @@ class EditBridge(APIView):
                  if monitor_api_url: # Only run if api_url is set
                     logger.debug(f"API URL or ports changed for {bridge_name}, updating monitors...")
                     # Create a new API key for this flow monitor installation
-                    api_key_name = f"switch-{lan_ip_address}-flow-monitor"
-                    api_key_instance, plaintext_key = create_api_key(name=api_key_name)
+                    flow_api_key_name = f"switch-{lan_ip_address}-flow-monitor"
+                    flow_api_key_instance, flow_plaintext_key = create_api_key(name=flow_api_key_name)
                     
-                    monitor_vars = {
+                    flow_monitor_vars = {
                         'ip_address': lan_ip_address,
                         'bridge_name': bridge_name,
                         'openflow_version': 'openflow13', # Or from request/config
                         'api_url': monitor_api_url,
-                        'api_key': plaintext_key,
+                        'api_key': flow_plaintext_key,
                     }
                     # Run Flow Monitor
                     install_flow_monitor_result = run_playbook_with_extravars(
-                        'run-ovs-flow-monitor', playbook_dir_path, inv_path, monitor_vars
+                        'run-ovs-flow-monitor', playbook_dir_path, inv_path, flow_monitor_vars
                     )
                     if install_flow_monitor_result.get('status') == 'failed':
                         logger.warning(f'Failed to update flow monitor for bridge {bridge_name} during edit.')
                         # Decide if this should be a hard failure or just a warning
 
+                    # Create a new API key for this QoS monitor installation
+                    qos_api_key_name = f"switch-{lan_ip_address}-qos-monitor"
+                    qos_api_key_instance, qos_plaintext_key = create_api_key(name=qos_api_key_name)
+                    
+                    qos_monitor_vars = {
+                        'ip_address': lan_ip_address,
+                        'bridge_name': bridge_name,
+                        'openflow_version': 'openflow13', # Or from request/config
+                        'api_url': monitor_api_url,
+                        'api_key': qos_plaintext_key,
+                    }
                     # Update QoS Monitor
                     logger.debug(f"Updating qos monitor for bridge {bridge_name} during edit.")
-                    install_qos_monitor_result = run_playbook_with_extravars(install_qos_monitor, playbook_dir_path, inv_path, monitor_vars)
+                    install_qos_monitor_result = run_playbook_with_extravars(install_qos_monitor, playbook_dir_path, inv_path, qos_monitor_vars)
 
                     if install_qos_monitor_result.get('status') == 'failed':
                         logger.warning(f'Failed to update qos monitor for bridge {bridge_name} during edit.')
@@ -721,7 +742,7 @@ class EditBridge(APIView):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CreateBridge(APIView):
-
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     @transaction.atomic # Ensure all DB operations succeed or fail together
     def post(self, request):
         """
@@ -1036,6 +1057,7 @@ class CreateBridge(APIView):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DeleteBridge(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     @transaction.atomic # Ensure atomicity for the delete operation
     def post(self, request):
         """
@@ -1246,6 +1268,7 @@ class DeleteBridge(APIView):
 
 
 class AssignPortsView(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     def post(self, request):
         try:
             data = request.data
@@ -1260,6 +1283,7 @@ class AssignPortsView(APIView):
 
 
 class DeleteControllerView(APIView):
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     def delete(self, request):
         try:
             data = request.data

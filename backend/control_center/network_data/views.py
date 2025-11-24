@@ -12,7 +12,7 @@ from rest_framework.decorators import (
 from django.utils import timezone
 from knox.auth import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_api_key.permissions import HasAPIKeyOrIsAuthenticated
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 import re
 from rest_framework import status
 from django.core.validators import RegexValidator
@@ -50,6 +50,7 @@ def get_latest_flow_by_mac_port(mac, port):
     ).order_by('-timestamp').first()
 
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([HasAPIKeyOrIsAuthenticated])
 def log_flow(request):
@@ -82,7 +83,7 @@ def log_flow(request):
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([HasAPIKeyOrIsAuthenticated])
 def aggregate_flows(request):
     """
     Retrieve aggregated flow data for a specified look-back period.
@@ -139,7 +140,7 @@ def aggregate_flows(request):
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([HasAPIKeyOrIsAuthenticated])
 def aggregate_flows_by_mac(request):
     """
     Retrieve aggregated flow data for a specified look-back period filtered by a MAC address.
@@ -207,6 +208,8 @@ def aggregate_flows_by_mac(request):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([HasAPIKeyOrIsAuthenticated])
 def data_used_per_classification(request):
     """
     Retrieve the data usage per classification for the specified period.
@@ -289,6 +292,8 @@ def data_used_per_classification(request):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([HasAPIKeyOrIsAuthenticated])
 def data_used_per_user(request):
     """
     Retrieve the data usage per user (mac_address) for the specified period.
@@ -316,6 +321,8 @@ def data_used_per_user(request):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([HasAPIKeyOrIsAuthenticated])
 def data_used_per_user_per_classification(request):
     """
     Retrieve the data usage per user per classification for the specified period.

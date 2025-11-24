@@ -26,6 +26,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 from knox.auth import TokenAuthentication
 from django.http import JsonResponse
 from channels.layers import get_channel_layer
@@ -198,7 +199,7 @@ class ClassificationStatsView(APIView):
     """
     API endpoint to view classification statistics
     
-    Authentication: Required (Knox Token)
+    Authentication: Required (Knox Token or API Key)
     
     Query Parameters:
         - model_name: Filter by model name (optional, defaults to active model)
@@ -206,7 +207,7 @@ class ClassificationStatsView(APIView):
         - summary: Return summary only (default: false)
     """
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
     
     def get(self, request):
         try:

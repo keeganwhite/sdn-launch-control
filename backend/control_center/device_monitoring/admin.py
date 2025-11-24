@@ -2,7 +2,7 @@
 Django admin configuration for device_monitoring app
 """
 from django.contrib import admin
-from .models import DeviceStats, DeviceHealthAlert, PortUtilizationStats, PortUtilizationAlert
+from .models import DeviceStats, DeviceHealthAlert, PortUtilizationStats, PortUtilizationAlert, DevicePingStats
 
 
 @admin.register(DeviceStats)
@@ -37,4 +37,13 @@ class PortUtilizationAlertAdmin(admin.ModelAdmin):
     list_display = ('ip_address', 'port_name', 'last_utilization_alert', 'last_null_link_speed_alert')
     search_fields = ('ip_address', 'port_name')
     readonly_fields = ('last_utilization_alert', 'last_null_link_speed_alert')
+
+
+@admin.register(DevicePingStats)
+class DeviceUptimeAdmin(admin.ModelAdmin):
+    list_display = ('device', 'is_alive', 'timestamp')
+    search_fields = ('device',)
+    readonly_fields = ('timestamp',)
+    ordering = ('-timestamp',)
+    date_hierarchy = 'timestamp'
 

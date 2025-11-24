@@ -9,6 +9,7 @@ from .serializers import NetworkDeviceSerializer
 from rest_framework.pagination import PageNumberPagination
 from knox.auth import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 
 class NetworkDevicePagination(PageNumberPagination):
     page_size = 25  # Default page size, can be overridden by ?page_size= param
@@ -18,7 +19,7 @@ class NetworkDevicePagination(PageNumberPagination):
 class NetworkDeviceViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows network devices to be viewed, edited, searched, and filtered.
-    
+    Authentication: Required (Knox Token or API Key)
     Supports lookup by:
     - Primary key (id): GET/PUT/DELETE /network-devices/{id}/
     - MAC address: GET/PUT/DELETE /network-devices/{mac_address}/
@@ -32,6 +33,7 @@ class NetworkDeviceViewSet(viewsets.ModelViewSet):
     ordering_fields = ['id', 'name', 'mac_address', 'device_type', 'ip_address', 'verified']
     ordering = ['id']
     pagination_class = NetworkDevicePagination
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
     
     def get_object(self):
         """

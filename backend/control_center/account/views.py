@@ -20,6 +20,7 @@ from knox.models import AuthToken
 
 # API View for Profile
 class UserProfileUpdateView(APIView):
+    permission_classes = [IsAuthenticated]  # Keep user-only for security
 
     def get(self, request):
         user_serializer = UserSerializer(request.user)
@@ -42,6 +43,7 @@ class UserProfileUpdateView(APIView):
 
 # API View for Changing Password
 class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]  # Keep user-only for security
 
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
@@ -103,16 +105,17 @@ class APIKeyListView(APIView):
         name = create_serializer.validated_data['name']
         api_key, plaintext_key = create_api_key(name=name, revoked=False)
         
-        response_serializer = APIKeyResponseSerializer({
+        # Construct response data directly to avoid serializer issues
+        response_data = {
             'id': api_key.id,
             'api_key': plaintext_key,
             'prefix': api_key.prefix,
             'name': api_key.name,
             'created': api_key.created,
             'revoked': api_key.revoked,
-        })
+        }
         
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class APIKeyDetailView(APIView):

@@ -34,6 +34,7 @@ from utils.ansible_utils import run_playbook_with_extravars, create_temp_inv, cr
 import logging
 from knox.auth import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from utils.permissions import HasAPIKeyOrIsAuthenticated
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -82,7 +83,7 @@ class OnosNetworkMap(APIView):
 
 class OvsNetworkMap(APIView):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasAPIKeyOrIsAuthenticated,)
 
     def get(self, request):
 
