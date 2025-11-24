@@ -86,7 +86,7 @@ class InstallControllerView(APIView):
             validate_ipv4_address(data.get('lan_ip_address'))
             lan_ip_address = data.get('lan_ip_address')
             # write_to_inventory(lan_ip_address, data.get('username'), data.get('password'), inventory_path)
-            inv_content = create_inv_data(lan_ip_address,  data.get('username'),data.get('password'))
+            inv_content = create_inv_data(lan_ip_address, data.get('username'), data.get('password'))
             inv_path = create_temp_inv(inv_content)
             # save_ip_to_config(lan_ip_address, config_path)
 

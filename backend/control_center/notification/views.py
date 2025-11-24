@@ -7,6 +7,7 @@ from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 
 from .serializers import DataUsageNotificationSerializer
 from .models import Notification, Notifier, NetworkSummaryNotification, DataUsageNotification, ApplicationUsageNotification
@@ -112,7 +113,7 @@ class NetworkSummaryNotificationViewSet(viewsets.ModelViewSet):
 
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
+        if not self.request.user.is_authenticated:  # TODO add a way for the LLM to access these...
             # API key access - return empty queryset since notifications are user-specific
             return NetworkSummaryNotification.objects.none()
         return NetworkSummaryNotification.objects.filter(notifier__user=self.request.user)
@@ -120,7 +121,7 @@ class NetworkSummaryNotificationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         if not self.request.user.is_authenticated:
             # API key access - cannot create user-specific notifications
-            from rest_framework.exceptions import PermissionDenied
+            
             raise PermissionDenied("Cannot create notifications with API key authentication. User authentication required.")
         logger.debug("perform_create with", self.request.user)
 
@@ -139,7 +140,7 @@ class DataUsageNotificationViewSet(viewsets.ModelViewSet):
     serializer_class = DataUsageNotificationSerializer
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
+        if not self.request.user.is_authenticated:  # TODO add a way for the LLM to access these...
             # API key access - return empty queryset since notifications are user-specific
             return DataUsageNotification.objects.none()
         return DataUsageNotification.objects.filter(notifier__user=self.request.user)
@@ -147,7 +148,6 @@ class DataUsageNotificationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         if not self.request.user.is_authenticated:
             # API key access - cannot create user-specific notifications
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Cannot create notifications with API key authentication. User authentication required.")
         notifier, created = Notifier.objects.get_or_create(user=self.request.user)
         serializer.save(notifier=notifier)
@@ -163,7 +163,7 @@ class ApplicationUsageNotificationViewSet(viewsets.ModelViewSet):
     serializer_class = ApplicationUsageNotificationSerializer
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
+        if not self.request.user.is_authenticated:  # TODO add a way for the LLM to access these...
             # API key access - return empty queryset since notifications are user-specific
             return ApplicationUsageNotification.objects.none()
         return ApplicationUsageNotification.objects.filter(notifier__user=self.request.user)
@@ -171,7 +171,6 @@ class ApplicationUsageNotificationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         if not self.request.user.is_authenticated:
             # API key access - cannot create user-specific notifications
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Cannot create notifications with API key authentication. User authentication required.")
         notifier, created = Notifier.objects.get_or_create(user=self.request.user)
         serializer.save(notifier=notifier)

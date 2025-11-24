@@ -40,8 +40,9 @@ class PortUtilizationAlertAdmin(admin.ModelAdmin):
 
 
 @admin.register(DevicePingStats)
-class DeviceUptimeAdmin(admin.ModelAdmin):
+class DevicePingStatsAdmin(admin.ModelAdmin):
     list_display = ('device', 'is_alive', 'timestamp')
+    list_filter = ('device', 'is_alive', 'timestamp')
     search_fields = ('device',)
     readonly_fields = ('timestamp',)
     ordering = ('-timestamp',)

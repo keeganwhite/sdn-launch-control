@@ -37,15 +37,19 @@ class HasAPIKeyOrIsAuthenticated(BasePermission):
     This is useful for endpoints that need to accept requests from both:
     - Automated systems using API keys (e.g., switches, monitoring scripts)
     - Web UI users authenticated with tokens
+    
+    Uses class-level permission instances for efficient evaluation.
     """
+    
+    # Class-level instances to avoid instantiating on every request
+    _api_key_permission = HasAPIKey()
+    _auth_permission = IsAuthenticated()
     
     def has_permission(self, request, view):
         # Check API key permission first
-        api_key_permission = HasAPIKey()
-        if api_key_permission.has_permission(request, view):
+        if self._api_key_permission.has_permission(request, view):
             return True
         
         # Fall back to standard authentication
-        auth_permission = IsAuthenticated()
-        return auth_permission.has_permission(request, view)
+        return self._auth_permission.has_permission(request, view)
 

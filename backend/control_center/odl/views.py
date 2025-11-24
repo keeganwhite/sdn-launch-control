@@ -141,11 +141,12 @@ class OdlMeterListView(ListAPIView):
         return queryset.order_by('-created_at')
 
 class CreateOpenDaylightMeterView(APIView):
-    permission_classes = [HasAPIKeyOrIsAuthenticated]
+    
     """
     Create a new ODL Meter, optionally filtered by controller_ip, switch_node_id, and model_name.
     Authentication: Required (Knox Token or API Key)
     """
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
     @transaction.atomic
     def post(self, request):
         try:

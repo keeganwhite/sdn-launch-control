@@ -1,14 +1,11 @@
 # views.py
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from .models import NetworkDevice
 from .serializers import NetworkDeviceSerializer
 from rest_framework.pagination import PageNumberPagination
-from knox.auth import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 from utils.permissions import HasAPIKeyOrIsAuthenticated
 
 class NetworkDevicePagination(PageNumberPagination):

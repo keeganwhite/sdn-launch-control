@@ -50,7 +50,6 @@ def get_latest_flow_by_mac_port(mac, port):
     ).order_by('-timestamp').first()
 
 
-@csrf_exempt
 @api_view(['POST'])
 @permission_classes([HasAPIKeyOrIsAuthenticated])
 def log_flow(request):
