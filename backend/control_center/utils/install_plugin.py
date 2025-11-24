@@ -24,6 +24,7 @@ from rest_framework.response import Response
 from rest_framework import status
 import logging
 from utils.ansible_utils import run_playbook_with_extravars, create_temp_inv, create_inv_data
+from utils.api_key_utils import create_api_key
 from general.models import Device
 from ovs_install.utilities.utils import (
     write_to_inventory, save_ip_to_config, save_switch_id, save_num_packets,
@@ -64,6 +65,10 @@ def install_sniffer_util(lan_ip_address, api_base_url, monitor_interface, port_t
         inv_content = create_inv_data(lan_ip_address, device.username, device.password)
         inv_path = create_temp_inv(inv_content)
 
+        # Create a new API key for this sniffer installation
+        api_key_name = f"switch-{lan_ip_address}-sniffer"
+        api_key_instance, plaintext_key = create_api_key(name=api_key_name)
+
         # create config and env vars
         config_vars = {
             'switch_id': '0',
@@ -78,6 +83,7 @@ def install_sniffer_util(lan_ip_address, api_base_url, monitor_interface, port_t
             'bridge_name': bridge_name,
             'odl_node_id': odl_switch_id,
             'controller_ip': controller_ip,
+            'api_key': plaintext_key,
         }
 
         # # Default settings for sniffer
@@ -159,6 +165,10 @@ def edit_sniffer_util(lan_ip_address, api_base_url, monitor_interface, port_to_c
         inv_content = create_inv_data(lan_ip_address, device.username, device.password)
         inv_path = create_temp_inv(inv_content)
 
+        # Create a new API key for this sniffer installation
+        api_key_name = f"switch-{lan_ip_address}-sniffer"
+        api_key_instance, plaintext_key = create_api_key(name=api_key_name)
+
         config_vars = {
             'switch_id': '0',
             'num_packets': 5,
@@ -172,6 +182,7 @@ def edit_sniffer_util(lan_ip_address, api_base_url, monitor_interface, port_to_c
             'bridge_name': bridge_name,
             'odl_node_id': odl_switch_id,
             'controller_ip': controller_ip,
+            'api_key': plaintext_key,
         }
 
         result = run_playbook_with_extravars('edit-sniffer-odl', playbook_dir_path, inv_path, config_vars, quiet=False)

@@ -20,6 +20,7 @@ CSV_FILE = os.getenv('CSV_OUTPUT_FILE', './odl_flow_stats.csv')
 API_URL = os.getenv('API_URL', 'http://127.0.0.1:8000')
 STATS_ENDPOINT = os.getenv('STATS_API_ENDPOINT', '/api/v1/network/log-flow-stats/')
 # BACKEND_API_AUTH_TOKEN = os.getenv('BACKEND_API_AUTH_TOKEN')
+API_KEY = os.getenv('API_KEY')  # API key for authentication
 
 POLL_INTERVAL = 10 
 
@@ -187,6 +188,8 @@ def send_stats_to_api(records_for_api):
 
     api_full_url = f"{API_URL.rstrip('/')}" + f"{STATS_ENDPOINT.rstrip('/')}" + "/"
     headers = {'Content-Type': 'application/json'}
+    if API_KEY:
+        headers['Authorization'] = f'Api-Key {API_KEY}'
     # if BACKEND_API_AUTH_TOKEN:
     #     headers['Authorization'] = f"Token {BACKEND_API_AUTH_TOKEN}"
 

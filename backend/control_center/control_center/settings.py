@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_api_key',
     'drf_spectacular',
     'knox',
     'corsheaders',
@@ -211,6 +212,21 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API documentation for SDN Launch Control.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,  # Excludes the schema endpoint from the docs
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': '/api/v1',
+    'AUTHENTICATION_WHITELIST': [
+        'knox.auth.TokenAuthentication',
+    ],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'ApiKeyAuth': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'Authorization',
+                'description': 'API Key authentication. Format: "Api-Key <your-api-key>"',
+            },
+        },
+    },
 }
 
 LOG_LEVEL = os.environ.get('DJANGO_LOG_LEVEL', 'INFO')

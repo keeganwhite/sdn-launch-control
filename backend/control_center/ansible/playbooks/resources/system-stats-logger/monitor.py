@@ -37,6 +37,9 @@ def get_system_stats():
 def send_stats_to_server(stats):
     url = os.getenv("API_URL", "http://localhost:8000")
     headers = {'Content-Type': 'application/json'}
+    API_KEY = os.getenv('API_KEY')  # API key for authentication
+    if API_KEY:
+        headers['Authorization'] = f'Api-Key {API_KEY}'
     response = requests.post(f'{url}/api/v1/post_device_stats/', data=stats, headers=headers)
     logging.info(f"Posted stats to server: {stats}")
     return response.status_code

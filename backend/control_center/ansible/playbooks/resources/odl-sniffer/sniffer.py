@@ -50,6 +50,7 @@ MODEL_NAME = os.getenv('MODEL_NAME')
 ODL_SWITCH_NODE_ID = os.environ.get('ODL_SWITCH_NODE_ID')  # e.g., "openflow:172223708800235"
 ODL_CONTROLLER_IP = os.environ.get('ODL_CONTROLLER_IP')  # e.g., "10.10.10.10"
 GRACE_PERIOD = int(os.getenv('GRACE_PERIOD', 30))  # Default to 30 if not set
+API_KEY = os.environ.get('API_KEY')  # API key for authentication
 
 # Logger setup (defaults to minimal output; configurable via env)
 logger = logging.getLogger(__name__)
@@ -115,6 +116,8 @@ def batch_sender():
                         continue
                     api_url = f"{API_BASE_URL.rstrip('/')}{ODL_CLASSIFY_ENDPOINT}"
                     headers = {'Content-Type': 'application/json'}
+                    if API_KEY:
+                        headers['Authorization'] = f'Api-Key {API_KEY}'
                     batch_to_send = classification_batch.copy()
                     flow_keys = [item[0] for item in batch_to_send]
                     data_list = [item[1] for item in batch_to_send]

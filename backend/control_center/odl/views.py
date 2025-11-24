@@ -45,7 +45,8 @@ from classifier.state_manager import state_manager
 from django.utils.timezone import now as django_now
 from django.db.models import Q
 from django.db import transaction
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework_api_key.permissions import HasAPIKeyOrIsAuthenticated
 
 
 from classifier.classification import create_classification_from_json
@@ -385,6 +386,7 @@ class CreateOpenDaylightMeterView(APIView):
 
 
 @api_view(['POST'])
+@permission_classes([HasAPIKeyOrIsAuthenticated])
 def odl_classify_and_apply_policy(request):
     if request.method == 'POST':
         data = request.data

@@ -33,7 +33,8 @@ from .serializers import PortUtilizationStatsSerializer, DeviceStatsSerializer
 from network_device.models import NetworkDevice
 from network_device.serializers import NetworkDeviceSerializer
 from requests.auth import HTTPBasicAuth
-from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework_api_key.permissions import HasAPIKeyOrIsAuthenticated
 from ovs_install.utilities.ansible_tasks import run_playbook
 from django.core.validators import validate_ipv4_address
 from django.core.exceptions import ValidationError
@@ -55,6 +56,7 @@ import re
 from datetime import datetime, timedelta
 import pytz
 from utils.ansible_utils import run_playbook_with_extravars, create_temp_inv, create_inv_data
+from utils.api_key_utils import create_api_key
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(script_dir)
@@ -72,10 +74,27 @@ def install_system_stats_monitor(request):
         data = request.data
         validate_ipv4_address(data.get('lan_ip_address'))
         lan_ip_address = data.get('lan_ip_address')
-        write_to_inventory(lan_ip_address, data.get('username'), data.get('password'), inventory_path)
-        save_ip_to_config(lan_ip_address, config_path)
-        save_api_url_to_config(data.get('api_url'), config_path)
-        result_install = run_playbook(install_system_monitor, playbook_dir_path, inventory_path)
+        device = get_object_or_404(Device, lan_ip_address=lan_ip_address)
+        api_url = data.get('api_url')
+
+        # Create a new API key for this system stats monitor installation
+        api_key_name = f"switch-{lan_ip_address}-stats-monitor"
+        api_key_instance, plaintext_key = create_api_key(name=api_key_name)
+
+        inv_content = create_inv_data(lan_ip_address, device.username, device.password)
+        inv_path = create_temp_inv(inv_content)
+
+        result_install = run_playbook_with_extravars(
+            install_system_monitor,
+            playbook_dir_path,
+            inv_path,
+            {
+                'ip_address': lan_ip_address,
+                'api_url': api_url,
+                'api_key': plaintext_key,
+            },
+            quiet=False
+        )
         return Response({"status": "success", "message": 'system monitor installed'}, status=status.HTTP_200_OK)
     except ValidationError:
         return Response({"status": "error", "message": "Invalid IP address format."},
@@ -102,6 +121,10 @@ def install_ovs_qos_monitor(request):
         inv_content = create_inv_data(lan_ip_address, device.username, device.password)
         inv_path = create_temp_inv(inv_content)
 
+        # Create a new API key for this QoS monitor installation
+        api_key_name = f"switch-{lan_ip_address}-qos-monitor"
+        api_key_instance, plaintext_key = create_api_key(name=api_key_name)
+
         result_install = run_playbook_with_extravars(
             install_qos_monitor,
             playbook_dir_path,
@@ -110,7 +133,8 @@ def install_ovs_qos_monitor(request):
                 'ip_address': lan_ip_address,
                 'bridge_name': bridge_name,
                 'openflow_version': 'openflow13',
-                'api_url': api_url
+                'api_url': api_url,
+                'api_key': plaintext_key,
             },
             quiet=False
         )
@@ -134,6 +158,7 @@ def install_ovs_qos_monitor(request):
 
 @csrf_exempt
 @api_view(['POST'])
+@permission_classes([HasAPIKeyOrIsAuthenticated])
 def post_device_stats(request):
     try:
         # Parse the JSON data from the request
@@ -173,6 +198,7 @@ def post_device_stats(request):
 
 @csrf_exempt
 @api_view(['POST'])
+@permission_classes([HasAPIKeyOrIsAuthenticated])
 def post_openflow_metrics(request):
     """
     Receives OpenFlow port metrics from qos.py script and stores port utilization stats.

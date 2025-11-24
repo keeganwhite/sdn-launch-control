@@ -41,6 +41,7 @@
     - "LOG_LEVEL={{ log_level | default('WARNING') }}"
     - "ENABLE_CONSOLE_LOG={{ enable_console_log | default('0') }}"
     - "VERBOSE={{ verbose | default('0') }}"
+    - "API_KEY={{ api_key }}"
 
 - name: Build Docker Container
 

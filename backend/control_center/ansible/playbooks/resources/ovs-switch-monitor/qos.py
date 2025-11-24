@@ -16,6 +16,7 @@ bridge = os.getenv('BRIDGE')
 openflow_version = os.getenv('OPENFLOW_VERSION', 'openflow13')
 api_url = os.getenv('API_URL')
 device_ip = os.getenv('DEVICE_IP')
+API_KEY = os.getenv('API_KEY')  # API key for authentication
 
 # Minimal-by-default logging with env controls
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'WARNING').upper()
@@ -89,6 +90,8 @@ def start_process(args):
 
 def send_data_to_api(url, data):
     headers = {'Content-Type': 'application/json'}
+    if API_KEY:
+        headers['Authorization'] = f'Api-Key {API_KEY}'
     rsp = requests.post(url, data=json.dumps(data), headers=headers)
     return rsp.status_code, rsp.text
 

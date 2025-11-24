@@ -22,6 +22,7 @@ import time
 
 from utils.ansible_formtter import get_interfaces_from_results, get_filtered_interfaces, extract_ovs_port_map, get_interface_speeds_from_results
 from utils.ansible_utils import run_playbook_with_extravars, create_temp_inv, create_inv_data
+from utils.api_key_utils import create_api_key
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
@@ -662,11 +663,16 @@ class EditBridge(APIView):
                  monitor_api_url = original_bridge.api_url # Use the potentially updated URL
                  if monitor_api_url: # Only run if api_url is set
                     logger.debug(f"API URL or ports changed for {bridge_name}, updating monitors...")
+                    # Create a new API key for this flow monitor installation
+                    api_key_name = f"switch-{lan_ip_address}-flow-monitor"
+                    api_key_instance, plaintext_key = create_api_key(name=api_key_name)
+                    
                     monitor_vars = {
                         'ip_address': lan_ip_address,
                         'bridge_name': bridge_name,
                         'openflow_version': 'openflow13', # Or from request/config
-                        'api_url': monitor_api_url
+                        'api_url': monitor_api_url,
+                        'api_key': plaintext_key,
                     }
                     # Run Flow Monitor
                     install_flow_monitor_result = run_playbook_with_extravars(
@@ -984,11 +990,16 @@ class CreateBridge(APIView):
 
             # --- 8. Install Monitors (Optional, only if api_url provided) ---
             if api_url:
+                # Create a new API key for this flow monitor installation
+                api_key_name = f"switch-{lan_ip_address}-flow-monitor"
+                api_key_instance, plaintext_key = create_api_key(name=api_key_name)
+                
                 monitor_vars = {
                     'ip_address': lan_ip_address,
                     'bridge_name': bridge_name,
                     'openflow_version': 'openflow13', # Make dynamic if needed
-                    'api_url': api_url
+                    'api_url': api_url,
+                    'api_key': plaintext_key,
                 }
                 # Install Flow Monitor
                 logger.debug(f"Running playbook 'run-ovs-flow-monitor' for bridge {bridge_name}")

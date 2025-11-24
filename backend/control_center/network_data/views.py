@@ -12,6 +12,7 @@ from rest_framework.decorators import (
 from django.utils import timezone
 from knox.auth import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_api_key.permissions import HasAPIKeyOrIsAuthenticated
 import re
 from rest_framework import status
 from django.core.validators import RegexValidator
@@ -50,6 +51,7 @@ def get_latest_flow_by_mac_port(mac, port):
 
 
 @api_view(['POST'])
+@permission_classes([HasAPIKeyOrIsAuthenticated])
 def log_flow(request):
     if request.method == 'POST':
         stats_data_list = request.data
